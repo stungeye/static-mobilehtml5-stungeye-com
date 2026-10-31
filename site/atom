@@ -1,0 +1,808 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>Mobile HTML5 Development</title>
+<link href="https://mobilehtml5.stungeye.com" ></link>
+<id>urn:uuid:6693a33f-8ed0-ab9d-e26f-314739207d23</id>
+<updated>2026-10-31T15:25:10+00:00</updated>
+<author><name>Kyle Geske</name>
+</author>
+<entry>
+<title>Html5 Native App Part Three</title>
+<link href="https://mobilehtml5.stungeye.com/2015/06/12/html5-native-app-part-three" ></link>
+<id>urn:uuid:7a42fb5e-352a-03b3-9c19-f400588bd9dd</id>
+<updated>2015-06-12T00:00:00+00:00</updated>
+<summary type="html" ><![CDATA[<p>This is the third installment of our tutorial on building a native mobile app using web technologies. We have been building a simple photo gallery app using images from the <a href="http://tumblr.com">Tumblr</a> microblogging service. In part one <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">we built the user-interface framework</a>, and in part two <a href="http://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">we built the touch-enabled photo gallery</a>.</p>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/vJMcC" alt="http://goo.gl/vJMcC"
+class="image_wrap" /></p>
+
+<p>The demo from part two can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">tested using your web browser</a>, or by scanning this QR Code with your smartphone. All three menu items are now working, including the "Reading Cats Gallery" which was implemented using the <a href="http://www.photoswipe.com/">Photoswipe library</a>.</p>
+
+<p><strong>In this post we'll be using <a href="https://cordova.apache.org/">Cordova</a> to package our project as a native Android app.</strong></p>
+
+<h3>Game Plan</h3>
+
+<ul>
+<li>Introduction</li>
+<li>Installing Cordova</li>
+<li>Cordova-izing Our App</li>
+<li>Emulating for Android</li>
+<li>Adding Native Functionality</li>
+<li>Adding a Cordova Plugin</li>
+<li>Uploading to the Google Play Store</li>
+</ul>
+
+<p>Things get complicated, so hold on to your cats! I've listed some alternative and potentially simplier approaches in the conclusion.</p>
+
+<h3>Introduction - From PhoneGap to Cordova</h3>
+
+<p>This post is three years late. My interest in HTML5 native apps is re-kindling. ;)</p>
+
+<p>In earlier posts I mentioned that we'd be using PhoneGap to convert our <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">MeowReader HTML5 app</a> into a native app. Since I wrote those earlier posts PhoneGap was purchased by Adobe, with the core technology becoming the open-source <a href="https://cordova.apache.org/">Apache Cordova</a>. Cordova is a framework and API for creating cross-platform native HTML5 apps.</p>
+
+<p>In this post we'll start with the app developed in <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">part 1</a> &amp; <a href="http://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">part 2</a> and  we'll compile it into an Android app. Then we'll deploy it to <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader&amp;hl=en">the Google Play store</a>.</p>
+
+<p>If you have an Android device <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader&amp;hl=en">install the sample MeowReader app now</a>.</p>
+
+<h3>Installing Cordova</h3>
+
+<p>The installation of Cordova will be different depending on your OS. I used a Windows 8 laptop with the Cordova Command Line Interface (CLI).</p>
+
+<p>Regardless of the OS the following will need to be installed and configured.</p>
+
+<ul>
+<li><a href="http://nodejs.org">Node.js</a></li>
+<li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java Development Kit</a> (JDK)</li>
+<li><a href="http://ant.apache.org/">Apache Ant</a></li>
+<li><a href="https://developer.android.com/sdk/installing/index.html?pkg=tools">Android Stand-alone SDK Tools</a></li>
+<li>Android SDK Build Tools - Via the Android SDK Manager</li>
+<li>Target Android API - Via the Android SDK Manager (I targetted API 14, which is Android 4.0 and up.)</li>
+<li><a href="https://cordova.apache.org/docs/en/5.0.0/guide_cli_index.md.html#The%20Command-Line%20Interface">Cordova CLI</a></li>
+</ul>
+
+<p>OS Specific Installation Instructions:</p>
+
+<ul>
+<li><a href="http://evothings.com/doc/build/cordova-install-windows.html">Cordova on Windows</a></li>
+<li><a href="http://learn.ionicframework.com/videos/windows-android/">Cordova on Windows Walkthrough Video</a></li>
+<li><a href="http://evothings.com/doc/build/cordova-install-osx.html">Cordova on OS X</a></li>
+<li><a href="http://evothings.com/doc/build/cordova-install-linux.html">Cordova on Linux</a></li>
+</ul>
+
+<h3>The MeowReader HTML5 App</h3>
+
+<p>The app we've been working on is a combination of HTML, CSS and Javascipt files. Since last time, I've upgraded to a newer version of <a href="http://photoswipe.com/">Photoswipe</a>, but the core functionality is the same. The app pulls images from my <a href="http://meow-reader.tumblr.com/">Meow Reader Tumblr</a> making them available in a swipeable image gallery.</p>
+
+<p><a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App">The code is available as Open Source on GitHub</a>.</p>
+
+<h3>Preparing the App for Cordova</h3>
+
+<p><strong>1)</strong> To create a native Android app the first step is creating a cordova project. From the command line:</p>
+
+<pre><code>cordova create meowreader com.stungeye.meowreader MeowReader
+</code></pre>
+
+<p>This will create a skeleton Cordova project in a <code>meowreader</code> folder.</p>
+
+<p><strong>2)</strong> We then add the Cordova Device plugin:</p>
+
+<pre><code>cordova plugin add org.apache.cordova.device
+</code></pre>
+
+<p><em>Only required if you wish to use the <a href="https://cordova.apache.org/docs/en/3.0.0/cordova_device_device.md.html">device api</a>.</em></p>
+
+<p><strong>3)</strong> Place our app files (index.html, css folder, js folder) in to the <code>meowreader\www</code> folder. Ensuring that our <a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App/blob/master/www/index.html">index.html</a> file includes the following script tag:</p>
+
+<pre><code>&lt;script type="text/javascript" src="cordova.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<h3>Testing Using an Android Emulator</h3>
+
+<p><strong>1)</strong> From the command line again, add project support for the Android platform:</p>
+
+<pre><code>cordova platform add android
+</code></pre>
+
+<p>You may need to following the <a href="https://cordova.apache.org/docs/en/4.0.0/guide_platforms_android_index.md.html#Android%20Platform%20Guide">Cordova Android Platform Guide</a> to ensure that all your tooling is properly configured.</p>
+
+<p><strong>2)</strong> Fill in the core configuration elements in the <a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App/blob/master/config.xml">config.xml</a> file found in the project root folder. <a href="https://cordova.apache.org/docs/en/4.0.0/config_ref_index.md.html#The%20config.xml%20File">Config.xml Documentation</a></p>
+
+<p><strong>3)</strong> Test the application using the stock Android emulator:</p>
+
+<pre><code>cordova emulate android
+</code></pre>
+
+<p>I prefer to use the <a href="https://www.genymotion.com/">GenyMotion Android Emulator</a>, which needs to be used like this:</p>
+
+<pre><code>cordova run android --device=device-name
+</code></pre>
+
+<p>The device name can be found once a GenyMotion emulator is running using:</p>
+
+<pre><code>adb devices
+</code></pre>
+
+<h3>Adding Some Native Functionality</h3>
+
+<p>Our Meow Reader app doesn't require any native functionality, but imagine we wanted to make use of the device's back button. This is something we normally cannot access from an HTML 5 app. In our Javascript setup code we could add the following:</p>
+
+<pre><code>document.addEventListener("deviceready", onDeviceReady, false);
+
+function onDeviceReady() { 
+    document.addEventListener("backbutton", backKeyPressed, false);
+}
+
+function backKeyPressed() {
+   console.log("The back key was pressed!");
+}
+</code></pre>
+
+<h3>Adding a Cordova Plugin</h3>
+
+<p>Extra native functional can be added to a Cordova app through plugins.  If, for example, we want our app to be able to detect a network connect we'd install the <a href="http://docs.phonegap.com/en/edge/cordova_connection_connection.md.html">Connection Plugin</a>:</p>
+
+<pre><code>cordova plugin add cordova-plugin-network-information
+</code></pre>
+
+<p>Our Javascript can now perform network detections:</p>
+
+<pre><code>function network_is_present() {
+    return navigator.connection.type != Connection.NONE;
+}
+</code></pre>
+
+<p><em>If <code>navigator.connection</code> isn't working you may have to apply the Android specific <code>config.xml</code> tweaks</em> <a href="http://docs.phonegap.com/en/edge/cordova_connection_connection.md.html">described here</a>.</p>
+
+<p>Take some time to <a href="http://plugins.cordova.io/">explore what's available in the Cordova Plugin Ecosystem</a>.</p>
+
+<h3>Google Play Store</h3>
+
+<p>Our final task is deployment of our Android application to the <a href="http://play.google.com">Google Play Store</a>.</p>
+
+<p><strong>1)</strong> Before you deploy you'll need to produce the <a href="https://support.google.com/googleplay/android-developer/answer/1078870">Play Store Required Graphic Assets</a>, such as app screenshots, app store icons, promo &amp; banner graphics.</p>
+
+<p><strong>2)</strong> Your app will also require launcher icons. These will be used as the app icon once it has been installed on an Andoird device.</p>
+
+<p>I built my icons using the <a href="https://romannurik.github.io/AndroidAssetStudio/">Android Asset Studio Tools</a>, placing the generated <code>mipmap</code> folders into <code>meowreader\platforms\android\res</code> and adjusting the <code>AndroidManifest.xml</code> file:</p>
+
+<pre><code>&lt;application android:hardwareAccelerated="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name"&gt;
+</code></pre>
+
+<p><strong>3)</strong> <a href="https://developer.android.com/tools/publishing/app-signing.html">Android requires that all apps be digitally signed with a certificate before they can be installed</a>. Android uses this certificate to identify the author of an app.</p>
+
+<p>I followed <a href="https://developer.android.com/tools/publishing/app-signing.html#signing-manually">the official instructions on manually creating a keystore/private key</a>.</p>
+
+<p>I then added a <code>ant.properties</code> file to the <code>platform\android\</code> folder:</p>
+
+<pre><code>key.store=/Users/username/Documents/my-release-key.keystore
+key.alias=meowreader
+</code></pre>
+
+<p><a href="http://ilee.co.uk/Sign-Releases-with-Cordova-Android/">Details here</a>.</p>
+
+<p>Don't lose this keystore! <a href="https://stackoverflow.com/questions/4843212/the-apk-must-be-signed-with-the-same-certificates-as-the-previous-version">You can't upgrade your app without it</a>.</p>
+
+<p><strong>4)</strong> Build the signed application (APK) file from the command line:</p>
+
+<pre><code>cordova build android --release
+</code></pre>
+
+<p><strong>5)</strong> Create a developer account for the Google Play Store and add a new app (with the assets from step 1). Lastly, upload the APK file from step 4 to the APK section of the Play Store app listing.</p>
+
+<h3>Conclusion</h3>
+
+<p>And so ends part three of our HTML5 native app tutorial. I hope you found it helpful. <a href="http://twitter.com/stungeye">Follow me on Twitter</a> if you want to hear about future tutorials. Don't forget to <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader&amp;hl=en">install the demo Meow Reader app from the app store</a>.</p>
+
+<p>I've described but one way to build a Cordova application, one that depends heavily on command line tools. If you aren't comfortable at the command line you might want to look into <a href="http://phonegap.com/blog/2015/03/02/phonegap-app-desktop-0-1-2/">Adobe's PhoneGap Desktop app</a> or their paid <a href="https://build.phonegap.com/">PhoneGap build service</a>.</p>
+
+<p>Since deploying the Meow Reader application I developed and deployed a second HTML5 app to the Android store, <a href="https://play.google.com/store/apps/details?id=com.stungeye.winnipegnews&amp;hl=en">the Winnipeg New app</a>. If you live in Winnipeg and are interested in learning more about Cordova, check out the <a href="http://www.meetup.com/Winnipeg-Android/events/221783607/">Winnipeg Android Meetup on June 23, 2015</a>.</p>
+]]></summary>
+</entry>
+<entry>
+<title>Html5 Tumblr Mobile App Part Two</title>
+<link href="https://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two" ></link>
+<id>urn:uuid:c3d76095-c066-6bec-55f6-94fbfceabb75</id>
+<updated>2012-05-11T00:00:00+00:00</updated>
+<summary type="html" ><![CDATA[<p>Welcome to part two of our tutorial on building a native mobile app using web technologies. We have been building a simple photo gallery app using images from the <a href="http://tumblr.com">Tumblr</a> microblogging service. In part one <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">we built the user-interface framework</a>.</p>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/oFh7Q" alt="http://goo.gl/oFh7Q"
+class="image_wrap" /></p>
+
+<p>Take a moment to play around with the demo from part one. It can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app_part_1b/">tested using your web browser</a>, or by scanning this QR Code with your smartphone. <em>Be aware that the top menu item isn't implemted yet.</em> The UI we built uses a single HTML document, CSS, and vanilla Javascript to implement a home page with a menu that allows users to navigate to various sub-sections. Our current app has three items in this menu:</p>
+
+<p><img src="/images/meow_css_screenshot_menu.png" alt="Meow Reader Menu" /></p>
+
+<p>The bottom two menu items were implemented in the previous tutorial. <strong>In this post we will be implementing a "touch-swipeable" photo gallery of reading cats.</strong> This gallery will be accessible via the first item in our homepage menu.</p>
+
+<h3>Game Plan</h3>
+
+<p>We're making a basic photo-gallery app. The source of our photos will be my <a href="http://meow-reader.tumblr.com">Meow Reader Tumblr</a>. Yes, photos of cats reading and cats learning how to read. Our app isn't going to include the image files, instead it will use Javascript to query the Tumblr API for the URLs and captions of the twenty most recent Meow Reader photos.</p>
+
+<p>In this post we will be developing the following parts of our app:</p>
+
+<ol>
+<li>Downloading photo data using the Tumblr API.</li>
+<li>Touch-Swipeable Photo Gallery.</li>
+</ol>
+
+<p>In part three of this tutorial we will use <a href="http://phonegap.com">PhoneGap/Cordova</a> to convert our mobile web app into a native app.</p>
+
+<h3>Fetching our Images</h3>
+
+<p>In order for our app to download images for our photo gallery we need three things:</p>
+
+<ol>
+<li>A source Tumblr. You can use <a href="http://meow-reader.tumblr.com">Meow Reader</a>, but feel free to use your favourite Tumblr image blog.</li>
+<li>A Tumblr Account. <a href="https://www.tumblr.com/">Sign up here</a>. (This does account does not need to be the owner of the Tumblr you plan on using.)</li>
+<li>A Tumblr OAuth Key, obtained by <a href="http://www.tumblr.com/oauth/apps">registering a Tumblr application</a>. Do this now, I'll wait here.</li>
+</ol>
+
+<h3>The Tumblr API</h3>
+
+<p>Tumblr provides some <a href="http://www.tumblr.com/docs/en/api/v2">great documentation for their API</a>, but I'll give you the compressed version. If you want to fetch the most recent photos associated with a specific Tumblr you need to add this script tag to the bottom of your HTML file:</p>
+
+<pre><code>&lt;script
+  type="text/javascript"
+  src="http://api.tumblr.com/v2/blog/TUMBLR.tumblr.com/posts/photo?api_key=APIKEY&amp;amp;jsonp=CALLBACK"
+&gt;&lt;/script&gt;
+</code></pre>
+
+<p><em>Mouse-over the above code to see it all. I've formatted the attributes strangely for space considerations.</em></p>
+
+<p>The portions I've shown in all caps need to be filled in as follows:</p>
+
+<p><code>TUMBLR</code>: Should be the name of the Tumblr you are using. In my case it's <code>meow-reader</code>.</p>
+
+<p><code>APIKEY</code>: Should be the OAuth Consumer Key listed on your Tumblr application page. (You did create a Tumblr account and you registered an app, right?)</p>
+
+<p><code>CALLBACK</code>: By including this parameter the data will be returned to us <a href="http://en.wikipedia.org/wiki/JSONP">JSONP</a>-style. In other words, this is the name of the Javascript function that you wish to be called after the data is fetched.</p>
+
+<p>Minus my APIKEY, the script tag I've used in this tutorial is:</p>
+
+<pre><code>&lt;script
+  type="text/javascript"
+  src="http://api.tumblr.com/v2/blog/meow-reader.tumblr.com/posts/photo?api_key=APIKEY&amp;amp;jsonp=load_images"
+&gt;&lt;/script&gt;
+</code></pre>
+
+<h3>The JSONP Callback and Processing the JSON</h3>
+
+<p>The way we've set things up, the Tumblr API will return its data by calling your provided callback function with the requested JSON data as it's argument.  Take a moment to look over <a href="http://www.tumblr.com/docs/en/api/v2#photo-posts">the Tumblr API JSON structure for photo posts</a>. Here the start of our <code>load_images</code> callback function:</p>
+
+<pre><code>function load_images(json) {
+  var i,
+      photos,
+      photo_big,
+      caption_text,
+      images = [],
+      posts = json['response']['posts'];
+
+  // Gather all 20 images returned from the Tumblr API into an array of hashes.
+  for (i = 0; i &lt; posts.length; i++) {
+    photos         = posts[i]['photos'][0]['alt_sizes'];
+    photo_big      = photos[0]['url'];
+    caption_text   = strip(posts[i]['caption']);
+    images.push({ url: photo_big, caption: caption_text });
+  }
+  // Bind these images to our photo gallery here.
+}
+</code></pre>
+
+<p>In this function we loop through all the posts provided in the <code>json['response']['posts']</code> array, pulling out the URL of the highest-res photo from each post along with the photo caption. We end up with an <code>images</code> array of hashes, where each hash has a <code>url</code> key and a <code>caption</code> key. We're also stripping out all HTML from the photo captions using the following <code>strip</code> function:</p>
+
+<pre><code>// Strip HTML elements from a string.
+// IMPORTANT: Only be used with trusted HTML. Very easy to abuse with an XSS attack.
+function strip(html) {
+  var tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent||tmp.innerText;
+}
+</code></pre>
+
+<p><strong>It's important to only use this function on HTML that you trust.</strong> In other words, if you are using somebody elses Tumblr <a href="http://stackoverflow.com/questions/822452/strip-html-from-text-javascript#comment9107196_822486">this function could be used as an XSS attack vector</a>.</p>
+
+<h3>PhotoSwipe</h3>
+
+<p>Now that we have an array of photos to work with, we need to create our mobile-friend image gallery. For this we will be using the <a href="http://www.photoswipe.com/">Photoswipe library</a>. PhotoSwipe is a free HTML/CSS/JavaScript based image gallery specifically targeting mobile devices. It uses the latest CSS3 transistions and Javascript touch-events to implement a slick touch-swipe photo gallery.</p>
+
+<p>Download the latest <a href="http://www.photoswipe.com/">Photoswipe</a> zip file. At the time of this blog post, the latest version was 3.0.4. Extract the <code>klass.min.js</code> and <code>code.photoswipe-3.0.4.min.js</code> to your <code>js</code> sub-folder. Extract the <code>error.gif</code>, <code>icons.png</code>, <code>icons@2x.png</code>, <code>loader.gif</code> and <code>photoswipe.css</code> files to your <code>css</code> folder. Import the require Javascript and CSS:</p>
+
+<pre><code>&lt;!-- The css link element should be placed in the head of your index.html file. --&gt;
+&lt;link href="css/photoswipe.css" type="text/css" rel="stylesheet" /&gt;
+&lt;!-- These script elements should be placed at the bottom of your html file before the closing body tag. --&gt;
+&lt;script type="text/javascript" src="js/klass.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="js/code.photoswipe-3.0.4.min.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<p>By default, Photoswipe expects your HTML to contain a collection of image thumbnails that link to full sized images. However, they're also provide <a href="https://github.com/codecomputerlove/PhotoSwipe/blob/master/src/examples/09-exclusive-mode-no-thumbnails.html">an example of using Photoswipe with an array of hashes</a> that contain image URLs and captions. Since we've already built an array like this, we need only add the following code to the bottom of our <code>load_images</code> function to create our photo gallery:</p>
+
+<pre><code>// Fetch a DOM reference to the first element in our homepage menu.
+var launch_link = document.getElementById('launch_link');
+
+// Configure Photoswipe to load images from the array of hashes created above.
+var options = {
+  captionAndToolbarAutoHideDelay: 0,
+  getImageSource: function(obj){
+    return obj.url;
+  },
+  getImageCaption: function(obj){
+    return obj.caption;
+  }
+};
+
+// Create a PhotoSwipe instance.
+var instance = Code.PhotoSwipe.attach(images, options);
+
+// Launch the slideshow when the user clicks on the launch link menu item on the home screen.
+set_click(launch_link, function(event) { instance.show(0); });
+</code></pre>
+
+<p>Now, when a user clicks on the first item on our menu (the item itself has an id of <code>launch_link</code>) the photo gallery will be launch. The set_click function was covered in <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">part one of this tutorial</a>.</p>
+
+<h3>Android ICS Fix</h3>
+
+<p>Based on my tests, Photoswipe is unusable on Android Ice Cream Sandwich version 4.0.0, 4.0.1, and 4.0.2. Things appear to work with Android 4.0.3, but I've only tested this version using the emulator not on an actual device.</p>
+
+<p>On the affected devices the swipe animations are very choppy. Sometimes the images flash when swiped or are not displayed at all. This appears to be <a href="http://code.google.com/p/android/issues/detail?id=24837">a CSS 3D transforms bug in Android 4.0.[0-2]</a>.</p>
+
+<p>A quick fix, <a href="https://github.com/codecomputerlove/PhotoSwipe/issues/275">found here</a>, is to have Photoswipe disable 3D transforms for those specific versions of Android. In order to accomplish this line 326 of Photoswipe's lib/code.util-1.0.6/code.util-1.0.6.js needs to be changed as follows:</p>
+
+<pre><code>// Is this Android ICS versions 4.0.2 or less?
+// The this.android variable was defined earlier in the code.
+var isAndroidICS = /4.0.[1-2]/.test(this.ua) &amp;&amp; this.android; 
+this.is3dSupported = !Util.isNothing(testEl.style.WebkitPerspective) &amp;&amp; !isAndroidICS; 
+</code></pre>
+
+<p>I've provided a single file minified version of <a href="https://gist.github.com/2657154">PhotoSwipe 3.0.4 with this fix in place</a>.</p>
+
+<p>Photoswipe's use of 3D transforms isn't because our photo gallery is in 3D. Using 3D over 2D CSS transforms is a sneaky way to enable hardward-accelerated animations on newer smartphone browsers.</p>
+
+<h3>Conclusion</h3>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/vJMcC" alt="http://goo.gl/vJMcC"
+class="image_wrap" /></p>
+
+<p>The final working version of our code for part 2 of this tutorial can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">tested using your web browser</a>, or by scanning this QR Code.</p>
+
+<p>In this tutorial we developed the swipeable photo gallery portion of our app using the PhotoSwipe library along with images gathered using the Tumblr API. In part three of this tutorial I'll take you through a step-by-step demonstration of turing this (or any other mobile web app) into a native app using <a href="http://phonegap.com">Phonegap</a>.</p>
+
+<p>This final Phonegap-wrapped version of this app is already <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader">available for download on the Android app store</a>.</p>
+]]></summary>
+</entry>
+<entry>
+<title>Parsing Rss With Javascript And Phonegap</title>
+<link href="https://mobilehtml5.stungeye.com/2012/04/12/parsing-rss-with-javascript-and-phonegap" ></link>
+<id>urn:uuid:50044b78-1624-5084-5d3f-06e13c8ec8a1</id>
+<updated>2012-04-12T00:00:00+00:00</updated>
+<summary type="html" ><![CDATA[<p>I just released an <a href="https://market.android.com/details?id=com.stungeye.winnipegnews">RSS news reader app</a> built with HTML5 and Phonegap. During the development of the app I encountered the following three problems when loading RSS feeds using the Javascript XMLHttpRequest object:</p>
+
+<ol>
+<li><p>Certain RSS feeds were being sent out without an XML MIME type, causing Javascript to interpret them as text.</p></li>
+<li><p>Some servers were detecting the AJAX RSS requests as coming from a mobile browser and redirecting to a mobile friendly HTML page.</p></li>
+<li><p>When testing outside of PhoneGap I needed a proxy script to fetch the feeds to overcome the browser's cross-domain restrictions.</p></li>
+</ol>
+
+<h3>Overriding Incorrect MIME Types</h3>
+
+<p>The XMLHttpRequest object has an <code>overrideMimeType</code> function that can be used to override a requested documents MIME type. Here's an example of a simple AJAX call where the MIME type is being forced to text/xml.</p>
+
+<pre><code>var xhr      = new XMLHttpRequest(),
+    feed_url = 'http://some.madeupdomain.ca/feed.xml';
+
+xhr.onerror = function() {
+  alert('Error loading the RSS document.');
+};
+
+xhr.onload = function() {
+  var xml   = xhr.responseXML.documentElement,
+      items = xml.getElementsByTagName('item'),
+      title = items[0].querySelector('title').firstChild.data;
+  alert('The first item title: ' + title);
+};
+
+xhr.open('GET', feed_url);
+xhr.responseType = 'document';
+xhr.overrideMimeType('text/xml');
+xhr.send();
+</code></pre>
+
+<h3>Fooling Mobile Browser Redirections</h3>
+
+<p>Certain web-servers will perform a blanket mobile-device redirect, no matter what document you are trying to load. I found a few news sites that redirected me to a mobile landing page when I tried to use XMLHttpRequest to load their RSS feed. Most mobile redirects of this nature are triggered by <a href="http://en.wikipedia.org/wiki/User_agent#User_agent_sniffing">User Agent sniffing</a>, so I needed some way to have my application self-identify as a non-mobile browser.</p>
+
+<p>PhoneGap doesn't allow us to spoof the User-Agent using Javascript. Instead I had to modify the wrapper application. Here are the required modifications to the main .java file for an Android PhoneGap application. I imagine that the WebView of an iOS PhoneGap Objective-C wrapper app could be similarily modified.</p>
+
+<pre><code>package com.yourdomain.feedtest;
+
+import org.apache.cordova.DroidGap;
+import android.os.Bundle;
+import android.webkit.WebSettings; // Added.
+
+public class FeedTestActivity extends DroidGap {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        super.loadUrl("file:///android_asset/www/index.html");
+        // Added the following two lines to spoof the user-agent to self-identify as a non-mobile browser.
+        WebSettings w = this.appView.getSettings();      
+        w.setUserAgentString("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.202 Safari/535.1");
+    }
+}
+</code></pre>
+
+<h3>Testing in the Browser Using a Proxy</h3>
+
+<p>When I was working on my app I did most of the initial testing using my desktop browser. The only problem is that unlike PhoneGap, browsers do not let you make cross-domain AJAX request. To overcome this I built a simple PHP proxy script that I placed on the same server as my HTML5 mobile app. I then routed all my AJAX calls through this script.</p>
+
+<pre><code>&lt;?php
+  header('Content-type: application/xml');
+  $file = file_get_contents($_GET['url']);
+  $file = preg_replace('/\s+/',' ', $file); // Replace repeated whitespace with single spaces.
+  echo $file;
+?&gt;
+</code></pre>
+
+<p>With this script present in the same folder as my HTML5 web app, I could make cross-domain AJAX request like this:</p>
+
+<pre><code>var xhr       = new XMLHttpRequest(),
+    feed_url  = 'http://some.madeupdomain.ca/feed.xml',
+    proxy_url = 'proxy.php?url=';
+/* Omitting the xhr.onerror and xhr.onload callbacks. */
+xhr.open('GET', proxy_url + feed_url);
+xhr.responseType = 'document';
+xhr.send();
+</code></pre>
+
+<p><strong>P.S.</strong> Part two of my <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">HTML5 Mobile Tumblr App post</a> is coming soon.</p>
+]]></summary>
+</entry>
+<entry>
+<title>Html5 Tumblr Mobile App Part One</title>
+<link href="https://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one" ></link>
+<id>urn:uuid:cee8f410-b3b0-5dd6-f05e-a6d2a33e3b00</id>
+<updated>2012-03-05T00:00:00+00:00</updated>
+<summary type="html" ><![CDATA[<p>Hi Folks. <strong>It's time to build our first native app using web technologies.</strong> We are going to build a simple photo gallery app using images from my <a href="http://meow-reader.tumblr.com">Meow Reader Tumblr</a>. The code presented  should be flexible enough to turn any Tumblr into an app.</p>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/m3kd6" alt="http://goo.gl/m3kd6" class="image_wrap" /></p>
+
+<p>A web-based demo of the completed app can be viewed <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">using your desktop or mobile browser</a>, or download the app to your Android phone by following this QR Code. Play around with this demo a bit to get a better idea of what we will be developing.</p>
+
+<p>This tutorial will be split into three parts. <strong>In this post we will write the HTML, CSS, and Javascript required to make a web-page look and act like an app.</strong> In part two, we will work with the Tumblr API to pull in our photos. In part three, we will use <a href="https://phonegap.com/">PhoneGap</a> to convert our mobile web app into a native app. We will then deploy to <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader">Google Play / the Android Market</a>.</p>
+
+<h3>Game Plan</h3>
+
+<p>In this post we will be developing the following parts of our app:</p>
+
+<ol>
+<li><strong>The HTML Markup</strong> - Our entire app exists within a single HTML5 document.</li>
+<li><strong>The CSS Styling</strong> - We use CSS to make our page look like an app.</li>
+<li><strong>Sub-Page Navigation</strong> - A Javascript/DOM menu allows navigation between various sub-pages.</li>
+<li><strong>Performance Tuning</strong> - We use Javascript to remove the click-event delay introduced by mobile web browsers.</li>
+</ol>
+
+<h3>A Word on Frameworks</h3>
+
+<p>There are a number of HTML5 frameworks we could have used to build our UI. We will explore some of them in future posts. For this tutorial, however, we will be coding without a framework so that we can get a better understanding of the quirks of mobile web development. I am therefore assuming an intermediate knowledge of HTML5 and CSS3, along with an understanding of Javascript and DOM manipulation. For a quick review of these skills in a mobile context, read my previous post on <a href="http://mobilehtml5.stungeye.com/2012/02/15/html5-mobile-web-app-tools">HTML5 mobile web-app tools</a>.</p>
+
+<h3>The HTML Markup</h3>
+
+<p>All of the markup for our app will be stored as a single index.html file. We will be using the DOM to allow the user to navigate to various "sub-pages" within our single-page app. The base markup for our app will be:</p>
+
+<pre><code>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;Meow Reader&lt;/title&gt;
+  &lt;meta name="HandheldFriendly" content="True"&gt;
+  &lt;meta name="MobileOptimized" content="320"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"&gt;
+  &lt;link href="css/style.css" type="text/css" rel="stylesheet" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="main" role="main"&gt;
+  &lt;/div&gt; &lt;!-- end #main --&gt;
+  &lt;!-- External Javascripts will be loaded here. --&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p><em>Hover your mouse over the code to see the longer truncated lines.</em></p>
+
+<p><a href="http://davidbcalhoun.com/2010/viewport-metatag">The meta elements</a> within the <code>head</code> ensure that our page will be read as mobile friendly markup. The <code>viewport</code> entry disables user-zooming and ensures that we are scaled to fit the actual width of our mobile screen. It also fixes an <a href="http://filamentgroup.com/examples/iosScaleBug/">oritentaion-change bug on iOS devices</a>.</p>
+
+<p>Some developers see disabling the user's ability to zoom as an <a href="http://en.wikipedia.org/wiki/Anti-pattern">anti-pattern</a>, but I find that it simplifies things. There are, however, <a href="http://adactio.com/journal/4470/">ways to get around the iOS bug</a> without disabling zoom if you are so inclined.</p>
+
+<h3>Single Page Navigation</h3>
+
+<p>The home "page" of our app will display a top toolbar, along with a naviation menu. I have implemented the menu as an unordered list of links:</p>
+
+<pre><code>&lt;!-- This toolbar will appear at the top of all pages. --&gt;
+&lt;div id="toolbar"&gt;
+  &lt;a href="#home" id="back_button" class="hidden"&gt;Home&lt;/a&gt;
+  &lt;h1&gt;Meow Reader&lt;/h1&gt;
+&lt;/div&gt; &lt;!-- end .toolbar --&gt;
+
+&lt;!-- When our app is loaded this home screen menu will be visible. --&gt;
+&lt;div id="home" class="screen"&gt;
+  &lt;ul class="buttons"&gt;
+    &lt;li&gt;
+        &lt;a href="#" id="launch_link"&gt;Reading Cats Gallery&lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;a href="#about_meow" class="switch_screen"&gt;About Meow Reader&lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;a href="#about_app" class="switch_screen"&gt;About This App&lt;/a&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt; &lt;!-- end #home --&gt;
+</code></pre>
+
+<p>The first link in this list will eventually launch our photo slideshow, but for now it will do nothing. For the remaining two links, we will use Javascript to "link" to seperate sub-pages. Each of these sub-pages will be created as a <code>div</code> element. These <code>div</code>s will be placed below the navigation menu:</p>
+
+<pre><code>&lt;!-- This sub-page should be loaded by clicking the #about_menu link. --&gt;
+&lt;div class="screen hidden" id="about_meow"&gt;
+  &lt;h2&gt;About Meow Reader&lt;/h2&gt;
+  &lt;p&gt;Photos of cats reading and photos of cats learning how to read.&lt;/p&gt;
+&lt;/div&gt; &lt;!-- end #about_meow --&gt;
+
+&lt;!-- This sub-page should be loaded by clicking the #about_app link. --&gt;
+&lt;div class="screen hidden" id="about_app"&gt;
+  &lt;h2&gt;About this App&lt;/h2&gt;
+  &lt;p&gt;This mobile application was written by Kyle Geske using HTML5 and Phonegap.&lt;/p&gt;
+&lt;/div&gt; &lt;!-- end #about_app --&gt;
+</code></pre>
+
+<h3>CSS Styling</h3>
+
+<p>For the look and feel of the application we are going to borrow heavily from the <a href="http://jqtouch.com/">JQtouch project</a>. JQtouch is a <a href="http://zeptojs.com/">Zepto</a>/Jquery plugin for mobile web development. I've taken portions of the JQtouch default CSS theme to style our app. Specifically I'm using the JQtouch styles for our navigation menu and the top toolbar.</p>
+
+<p>I placed all my styling rules into a <code>style.css</code> file within a <code>css</code> sub-folder. The full extent of my CSS pilfering can be seen as <a href="https://gist.github.com/1950596">a github gist</a>. Note that I also added the following CSS to style our "sub-pages":</p>
+
+<pre><code>#about_meow, #about_app {
+  background-color: #D5D6D7;
+  margin: 15px 10px 17px 10px;
+  -webkit-box-shadow: rgba(255, 255, 255, 0.15) 0 1px 0;
+  box-shadow: rgba(255, 255, 255, 0.15) 0 1px 0;
+  border: 1px solid #a5a6a7;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+  padding: 1em;
+}
+
+#about_meow h2, #about_app h2 {
+    margin-top: 0;
+}
+
+#about_meow a, #about_app a {
+    color: #3B59BB;
+}
+
+#about_meow blockquote, #about_app blockquote {
+    margin-left: 0;
+    margin-top: 2em;
+    font-style: italic;
+    font-family: serif;
+}
+</code></pre>
+
+<p>With the CSS applied, our app is now starting to look like an app. Pretty snazzy, eh?</p>
+
+<p><img src="/images/meow_css_screenshot.png" alt="Meow Reader CSS Screenshot" /></p>
+
+<h3>Javascript "Sub-Page" Navigation</h3>
+
+<p>Each "sub-page" in our app, including our home screen navigation menu, is a <code>div</code> with a class of <code>screen</code>. The <code>id</code> attributes of these elements each match an <code>href</code> fragment in our navigation list links. For example, the second navigation link has an <code>href</code> of <code>#about_meow</code>. It will be used to navigate to the <code>div</code> with an <code>id</code> of <code>about_meow</code>. Note that the back button in the toolbar has an <code>href</code> that matches the <code>id</code> of our navigation home screen <code>div</code>.</p>
+
+<p>By default we want to hide the toolbar's back button and the two "about" subpages. If you look back to the HTML, you'll see that these elements have a class of <code>hidden</code> applied to them. We will define this class like so:</p>
+
+<pre><code>.hidden {
+    display: none;
+}
+</code></pre>
+
+<p>We are going to use this class along with some Javascript to hide/show DOM elements. Let's build a <code>hide</code> and a <code>show</code> function that use <code>className</code> property of the provided DOM elements to add/remove the <code>hidden</code> class. Using these functions we will create another function called <code>switch_screen</code> that allows us to specify, by id, which sub-page to display. This function will hide all <code>div</code>s with a class of <code>screen</code> and then show the requested <code>div</code>. It will also toggle the visibility of the back button in the toolbar.</p>
+
+<pre><code>// Hide any DOM element by adding the CSS class "hidden",
+// unless the class is already present.
+function hide(el) {
+  if (el.className.indexOf('hidden') === -1) {
+    el.className+= ' hidden';
+  }
+}
+// Unhide any DOM element that was previously hidden using
+// the CSS class "hidden".
+function show(el) {
+  el.className = el.className.replace(/ ?hidden/gi, '');
+}
+// Hide all div.screen elements and then show the div with
+// the requested id.
+function switch_screen(id) {
+  // Remove the hash sign from the start of the id.
+  id = id.substring(1); 
+  var current_screen = document.getElementById(id),
+      back_button = document.getElementById('back_button');
+  // Find all div.screen elements and hide them.
+  [].forEach.call(document.querySelectorAll("div.screen"), function(el) {
+    hide(el);
+  });
+  show(current_screen);
+  if (id !== "home") {
+    show(back_button);
+  } else {
+    hide(back_button);
+  }
+}
+</code></pre>
+
+<p>We can now bind the bottom two navigation links to this <code>switch_screen</code> function. We will bind the back button to this function as well. We will do this, when the DOM is ready, with a little helper function called <code>set_click</code>. This <code>set_click</code> function takes as arguments an element and a callback function. It overrides the default click action of the element with the supplied callback.</p>
+
+<pre><code>// Helper function the simplify setting click events on elements.
+// The callback_fnc provided should be defined with one parameter,
+// which will be set to the clicked element when executed.
+function set_click(el, callback_fnc) {
+  el.addEventListener('click', function(event) {
+    // Supress the default click action of links.
+    event.preventDefault();
+    callback_fnc(el); // Hand off the element in case it's required in our callback.
+  }, false);
+}
+// Execute the provided anonymous function when the DOM is ready.
+document.addEventListener("DOMContentLoaded", function() {
+  var back_button = document.getElementById('back_button');
+  // Set the switch_screen callback for the toolbar back button,
+  // passing the link's href value as the argument.
+  set_click(back_button, function(e) { switch_screen(e.getAttribute('href')); });
+  // Bind each of the buttons on the home screen to a switch_screen callback.
+  // Use each link's href value as the switch_screen argument.
+  [].forEach.call(document.querySelectorAll("ul.buttons a.switch_screen"), function(el) {
+    set_click(el, function(e) { switch_screen(e.getAttribute('href')); });
+  });
+});
+</code></pre>
+
+<h3>Click Delays</h3>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/4dXqy" alt="http://goo.gl/4dXqy"
+class="image_wrap" /></p>
+
+<p>A working version of our code up to this point can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app_part_1a/">tested using your web browser</a>, or by scanning this QR Code.</p>
+
+<p>Try navigating to our two sub-pages using the bottom two links in our navigation menu. Use the back button in the toolbar to return to the main menu. Depending on your smartphone you may have noticed a slight delay when navigating our menu. The delay will likely be in the 300 to 400 milisecond range.</p>
+
+<p>Depending on the mobile browser a finger tap will result in the following events being fired:</p>
+
+<ul>
+<li>touchstart   </li>
+<li>touchend     </li>
+<li>mousedown    </li>
+<li>mouseup      </li>
+<li>click</li>
+</ul>
+
+<p>Mobile browsers typically introduce a 300ms delay after <code>touchend</code>, so that the browser can determine if the user is performing a gesture rather than a click. This might be acceptable while navigating the web, but we want our mobile app to feel snappier. To solve this problem we are going to bind our navigation actions to <code>touchend</code> rather than <code>click</code>. I used a version of <a href="http://cubiq.org/remove-onclick-delay-on-webkit-for-iphone">Matteo Spinelli's iPhone solution</a> which <a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App/blob/master/js/noclickdelay.js">I modified for Android support</a>.</p>
+
+<p>Links are enhanced using this script as follows:</p>
+
+<pre><code>new NoClickDelay(document.getElementById('id_of_link_element'));
+</code></pre>
+
+<p>In order to apply this to all my links I modified my <code>set_click</code> function:</p>
+
+<pre><code>function set_click(el, callback_fnc) {
+  // Are we on a touch device? i.e. is ontouchstart present?
+  if('ontouchstart' in document.documentElement ) {
+    new NoClickDelay(el, callback_fnc);
+  } else { // For non-mobile browsers.
+    el.addEventListener('click', function(event) {
+      event.preventDefault();
+      callback_fnc(el); // Hand off the element in case it's required in our callback.
+    }, false);
+  }
+}
+</code></pre>
+
+<p>This fix isn't perfect. I'm still experiences some "ghost click events" that fire after the navigation callback is called. In the future I may use <a href="https://github.com/h5bp/mobile-boilerplate/blob/master/js/helper.js">the HTML5 Boilerplate FastButton Solution</a> or the <a href="https://github.com/cheeaun/tappable">Tappable</a> library.</p>
+
+<p>All of our Javascript files should be placed in a <code>js</code> sub-folder within our project folder.</p>
+
+<h3>Conclusion</h3>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/oFh7Q" alt="http://goo.gl/oFh7Q"
+class="image_wrap" /></p>
+
+<p>The final working version of our code for part 1 of this tutorial can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app_part_1b/">tested using your web browser</a>, or by scanning this QR Code.</p>
+
+<p>In this tutorial we developed a simple single-page navigation system and replicated the default JQtouch mobile app theme. The code we developed should work equally well as a mobile web app on Android and iOS devices. If you have any questions or suggestions for improvements, please leave a comment below.</p>
+
+<p><strong>In part 2, we are going to use the <a href="http://www.tumblr.com/docs/en/api/v2#photo-posts">Tumblr API</a> to import our slideshow images from my <a href="http://meow-reader.tumblr.com">Meow Reader Tumblr</a>.</strong> The slideshow itself will be implemented using either <a href="http://www.photoswipe.com/">Photoswipe</a>, <a href="http://cubiq.org/swipeview">Swipeview</a> or <a href="http://swipejs.com/">Swipe.js</a>.</p>
+
+<p>In part 3 we will use <a href="http://phonegap.com/">Phonegap</a> to convert our mobile web app into a native app.</p>
+]]></summary>
+</entry>
+<entry>
+<title>Html5 Mobile Web App Tools</title>
+<link href="https://mobilehtml5.stungeye.com/2012/02/15/html5-mobile-web-app-tools" ></link>
+<id>urn:uuid:7a03e363-2a3a-1fc8-7be5-cc7862b6b7c5</id>
+<updated>2012-02-15T00:00:00+00:00</updated>
+<summary type="html" ><![CDATA[<p>Hi there. I hear that <strong>you want to build native mobile apps using only web technologies.</strong> Me too. Before we begin we need to define our required toolset. For the sake of simplicity, I will assume you are already a proficient HTML/CSS/Javascript developer.</p>
+
+<h3>Phonegap</h3>
+
+<blockquote>
+  <p>"PhoneGap is an HTML5 app platform that allows you to author native applications with web technologies and get access to APIs and app stores. PhoneGap leverages web technologies developers already know best... HTML, [CSS], and JavaScript." -- From the <a href="http://phonegap.com/">PhoneGap website</a></p>
+</blockquote>
+
+<iframe width="526" height="305" src="https://www.youtube.com/embed/E0UV5i5jY50?rel=0" frameborder="0" allowfullscreen></iframe>
+
+<p>PhoneGap allows us to write our applications once and deploy to multiple mobile platforms including Android, iPhone/iPad, Windows Phone 7, Blackberry, WebOS, Symbian, and Bada. It also gives our apps access to <a href="http://phonegap.com/about/features">native features</a> like the accelerometer, the camera, notifications, and location services to name a few.</p>
+
+<p>Phonegap is free (as in <a href="http://en.wikipedia.org/wiki/Gratis_versus_libre#.22Free_beer.22_vs_.22free_speech.22_distinction">beer and speech</a>) and can be used under Windows, Linux, and Mac OS X.</p>
+
+<p><a href="http://phonegap.com/download-thankyou">Download PhoneGap</a> and then follow the <a href="http://phonegap.com/start">Getting Started Tutorial</a> for your intended target device. Alternatively you can use the <a href="https://build.phonegap.com/">PhoneGap Build</a> service instead of a local install. It's currently free while in beta, but will eventually be a pay for use service.</p>
+
+<h3>HTML5</h3>
+
+<p>The markup for our applications will be written in HTML5. If you need a quick HTML5 introduction or review you should head over to <a href="http://diveintohtml5.info/">Dive into HTML5</a> by Mark Pilgrim.</p>
+
+<p>The base markup we will be using is a stripped down version of the <a href="http://html5boilerplate.com/mobile">Mobile HTML5 Boilerplate</a>. In future posts I will explore what those <code>meta</code> elements do, and how the <code>viewport</code> one can be tweaked.</p>
+
+<pre><code>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;&lt;/title&gt;
+  &lt;meta name="description" content=""&gt;
+  &lt;meta name="HandheldFriendly" content="True"&gt;
+  &lt;meta name="MobileOptimized" content="320"&gt;
+  &lt;meta name="viewport" content="width=device-width"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="container"&gt;
+    &lt;header&gt;
+    &lt;/header&gt;
+    &lt;div id="main" role="main"&gt;
+    &lt;/div&gt;
+    &lt;footer&gt;
+    &lt;/footer&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h3>CSS3</h3>
+
+<p>For our CSS we will also be using the Mobile HTML5 Boilerplate as our starting place. For now we will simply grab the <a href="http://www.cssreset.com/what-is-a-css-reset/">"reset"</a> portion of <a href="https://github.com/h5bp/mobile-boilerplate/blob/master/css/style.css">Mobile Boilerplate CSS file</a>. When targeting all phone types we will grab the CSS from the top of that file up until the section labeled "primary styles". If you are not planning on developing for Windows Phones you can safely remove all the sections that mention fixes for IE. Doing that, we are left with <a href="https://gist.github.com/1837760">this generic mobile CSS reset</a>.</p>
+
+<p>Before we use any fancy CSS3 properties in our app, we will always check the incredible <a href="http://caniuse.com/#cats=CSS">When Can I Use</a> resource to see if the phone we are targeting supports the property we wish to use. For Android development, for example, we will ensure that all the CSS3 we use is supported in Android 2.1 and greater.</p>
+
+<h3>Javascript</h3>
+
+<p>For our first few apps we will not be using a Javascript framework. We will be writing plain-old Javascript/DOM code. This will keep our code fast and our app size small. If you are a jQuery addict, take a quick look at this <a href="http://sharedfil.es/js-48hIfQE4XK.html">jQuery to Vanilla Javascript</a> translation guide.</p>
+
+<p>Just like with our CSS, we will check for platform support of new Javascript features using <a href="http://caniuse.com">When Can I Use</a>. A quick visit to this site shows us that for Android development we cannot use the "classList" DOM property shown in the above jQuery to Vanilla Javascript link, unless we are okay with only targeting Android v3+.</p>
+
+<p>There are a number of Javascript frameworks built specifically for mobile development. We will explore a number of these in future blog posts, starting with <a href="http://zeptojs.com/">Zepto</a> (the webkit-optimized jQuery clone) and <a href="http://jqtouch.com/">jQTouch</a> a Zepto plugin for mobile web development.</p>
+
+<h3>Emulators</h3>
+
+<p>To test your applications you will need a smartphone emulator, especially if you are like me and <a href="http://mobilehtml5.stungeye.com/2012/02/10/the-journey-begins">you don't actually own a smartphone</a>. There are <a href="https://github.com/h5bp/mobile-boilerplate/wiki/Mobile-Emulators-%26-Simulators">official simulators and/or emulators</a> available for the full suite of mobile web-browsers. However, we want an emulator that includes support for the PhoneGap API. Luckily, a company called tinyHippos (recently acquired by RIM) makes such an emulator. It's called <a href="https://bdsc.webapps.blackberry.com/html5/download/ripple">Ripple</a>. Ripple supports PhoneGap built mobile applications, allows you to emulated GPS and Accelerometer events, and includes a web inspector for debugging purposes.</p>
+
+<h3>What's Next?</h3>
+
+<p>In our next blog post we will use these tools to build our very first mobile app and deploy it to the <a href="https://market.android.com/?hl=en">Android Market</a>.</p>
+]]></summary>
+</entry>
+<entry>
+<title>The Journey Begins</title>
+<link href="https://mobilehtml5.stungeye.com/2012/02/10/the-journey-begins" ></link>
+<id>urn:uuid:c5bb6bd6-50c7-9316-dcb3-18ec1f2d7538</id>
+<updated>2012-02-10T00:00:00+00:00</updated>
+<summary type="html" ><![CDATA[<p><strong>I don't own a smartphone.</strong> My mobile is a flip-style dumbphone from 2007. I don't have a data-plan. <strong>And yet, I want to develop mobile apps.</strong> This is my story, my journey to build mobile applications using only web technologies and emulators.</p>
+
+<p>I don't want to learn <a href="http://en.wikipedia.org/wiki/Objective-C">a new programming language</a> or <a href="http://developer.android.com/sdk/index.html">a new Java framework</a>. I want to work with HTML5, CSS3, and Javascript. I want to capitalize on the strengths I already have to develop cross-platform mobile applications. I plan on using <a href="http://phonegap.com">Phonegap</a> to turn my creations into "native" apps.</p>
+
+<p>I will document my mobile-web experiments on this blog, while deploying my finished apps to <a href="https://market.android.com">the Android Market</a>. I invite you to join me on this journey. The adventure begins now.</p>
+]]></summary>
+</entry>
+</feed>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Html5 Tumblr Mobile App Part Two - Mobile HTML5 Development</title>
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,400italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" href="https://yandex.st/highlightjs/6.1/styles/solarized_light.min.css">
+    <script src="https://yandex.st/highlightjs/6.1/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body id="home">
+    <div id="wrapper">
+        <header>
+            <h1><a href="https://mobilehtml5.stungeye.com" title="Return to the homepage">Mobile HTML5 Development</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="https://mobilehtml5.stungeye.com/apps">Apps</a></li>
+                    <li><a href="https://mobilehtml5.stungeye.com/archive">Archives</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div id="content" role="main">
+<article>
+            <h2><a href="https://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">Html5 Tumblr Mobile App Part Two</a></h2>
+        <p>Welcome to part two of our tutorial on building a native mobile app using web technologies. We have been building a simple photo gallery app using images from the <a href="http://tumblr.com">Tumblr</a> microblogging service. In part one <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">we built the user-interface framework</a>.</p>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/oFh7Q" alt="http://goo.gl/oFh7Q"
+class="image_wrap" /></p>
+
+<p>Take a moment to play around with the demo from part one. It can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app_part_1b/">tested using your web browser</a>, or by scanning this QR Code with your smartphone. <em>Be aware that the top menu item isn't implemted yet.</em> The UI we built uses a single HTML document, CSS, and vanilla Javascript to implement a home page with a menu that allows users to navigate to various sub-sections. Our current app has three items in this menu:</p>
+
+<p><img src="/images/meow_css_screenshot_menu.png" alt="Meow Reader Menu" /></p>
+
+<p>The bottom two menu items were implemented in the previous tutorial. <strong>In this post we will be implementing a "touch-swipeable" photo gallery of reading cats.</strong> This gallery will be accessible via the first item in our homepage menu.</p>
+
+<h3>Game Plan</h3>
+
+<p>We're making a basic photo-gallery app. The source of our photos will be my <a href="http://meow-reader.tumblr.com">Meow Reader Tumblr</a>. Yes, photos of cats reading and cats learning how to read. Our app isn't going to include the image files, instead it will use Javascript to query the Tumblr API for the URLs and captions of the twenty most recent Meow Reader photos.</p>
+
+<p>In this post we will be developing the following parts of our app:</p>
+
+<ol>
+<li>Downloading photo data using the Tumblr API.</li>
+<li>Touch-Swipeable Photo Gallery.</li>
+</ol>
+
+<p>In part three of this tutorial we will use <a href="http://phonegap.com">PhoneGap/Cordova</a> to convert our mobile web app into a native app.</p>
+
+<h3>Fetching our Images</h3>
+
+<p>In order for our app to download images for our photo gallery we need three things:</p>
+
+<ol>
+<li>A source Tumblr. You can use <a href="http://meow-reader.tumblr.com">Meow Reader</a>, but feel free to use your favourite Tumblr image blog.</li>
+<li>A Tumblr Account. <a href="https://www.tumblr.com/">Sign up here</a>. (This does account does not need to be the owner of the Tumblr you plan on using.)</li>
+<li>A Tumblr OAuth Key, obtained by <a href="http://www.tumblr.com/oauth/apps">registering a Tumblr application</a>. Do this now, I'll wait here.</li>
+</ol>
+
+<h3>The Tumblr API</h3>
+
+<p>Tumblr provides some <a href="http://www.tumblr.com/docs/en/api/v2">great documentation for their API</a>, but I'll give you the compressed version. If you want to fetch the most recent photos associated with a specific Tumblr you need to add this script tag to the bottom of your HTML file:</p>
+
+<pre><code>&lt;script
+  type="text/javascript"
+  src="http://api.tumblr.com/v2/blog/TUMBLR.tumblr.com/posts/photo?api_key=APIKEY&amp;amp;jsonp=CALLBACK"
+&gt;&lt;/script&gt;
+</code></pre>
+
+<p><em>Mouse-over the above code to see it all. I've formatted the attributes strangely for space considerations.</em></p>
+
+<p>The portions I've shown in all caps need to be filled in as follows:</p>
+
+<p><code>TUMBLR</code>: Should be the name of the Tumblr you are using. In my case it's <code>meow-reader</code>.</p>
+
+<p><code>APIKEY</code>: Should be the OAuth Consumer Key listed on your Tumblr application page. (You did create a Tumblr account and you registered an app, right?)</p>
+
+<p><code>CALLBACK</code>: By including this parameter the data will be returned to us <a href="http://en.wikipedia.org/wiki/JSONP">JSONP</a>-style. In other words, this is the name of the Javascript function that you wish to be called after the data is fetched.</p>
+
+<p>Minus my APIKEY, the script tag I've used in this tutorial is:</p>
+
+<pre><code>&lt;script
+  type="text/javascript"
+  src="http://api.tumblr.com/v2/blog/meow-reader.tumblr.com/posts/photo?api_key=APIKEY&amp;amp;jsonp=load_images"
+&gt;&lt;/script&gt;
+</code></pre>
+
+<h3>The JSONP Callback and Processing the JSON</h3>
+
+<p>The way we've set things up, the Tumblr API will return its data by calling your provided callback function with the requested JSON data as it's argument.  Take a moment to look over <a href="http://www.tumblr.com/docs/en/api/v2#photo-posts">the Tumblr API JSON structure for photo posts</a>. Here the start of our <code>load_images</code> callback function:</p>
+
+<pre><code>function load_images(json) {
+  var i,
+      photos,
+      photo_big,
+      caption_text,
+      images = [],
+      posts = json['response']['posts'];
+
+  // Gather all 20 images returned from the Tumblr API into an array of hashes.
+  for (i = 0; i &lt; posts.length; i++) {
+    photos         = posts[i]['photos'][0]['alt_sizes'];
+    photo_big      = photos[0]['url'];
+    caption_text   = strip(posts[i]['caption']);
+    images.push({ url: photo_big, caption: caption_text });
+  }
+  // Bind these images to our photo gallery here.
+}
+</code></pre>
+
+<p>In this function we loop through all the posts provided in the <code>json['response']['posts']</code> array, pulling out the URL of the highest-res photo from each post along with the photo caption. We end up with an <code>images</code> array of hashes, where each hash has a <code>url</code> key and a <code>caption</code> key. We're also stripping out all HTML from the photo captions using the following <code>strip</code> function:</p>
+
+<pre><code>// Strip HTML elements from a string.
+// IMPORTANT: Only be used with trusted HTML. Very easy to abuse with an XSS attack.
+function strip(html) {
+  var tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent||tmp.innerText;
+}
+</code></pre>
+
+<p><strong>It's important to only use this function on HTML that you trust.</strong> In other words, if you are using somebody elses Tumblr <a href="http://stackoverflow.com/questions/822452/strip-html-from-text-javascript#comment9107196_822486">this function could be used as an XSS attack vector</a>.</p>
+
+<h3>PhotoSwipe</h3>
+
+<p>Now that we have an array of photos to work with, we need to create our mobile-friend image gallery. For this we will be using the <a href="http://www.photoswipe.com/">Photoswipe library</a>. PhotoSwipe is a free HTML/CSS/JavaScript based image gallery specifically targeting mobile devices. It uses the latest CSS3 transistions and Javascript touch-events to implement a slick touch-swipe photo gallery.</p>
+
+<p>Download the latest <a href="http://www.photoswipe.com/">Photoswipe</a> zip file. At the time of this blog post, the latest version was 3.0.4. Extract the <code>klass.min.js</code> and <code>code.photoswipe-3.0.4.min.js</code> to your <code>js</code> sub-folder. Extract the <code>error.gif</code>, <code>icons.png</code>, <code>icons@2x.png</code>, <code>loader.gif</code> and <code>photoswipe.css</code> files to your <code>css</code> folder. Import the require Javascript and CSS:</p>
+
+<pre><code>&lt;!-- The css link element should be placed in the head of your index.html file. --&gt;
+&lt;link href="css/photoswipe.css" type="text/css" rel="stylesheet" /&gt;
+&lt;!-- These script elements should be placed at the bottom of your html file before the closing body tag. --&gt;
+&lt;script type="text/javascript" src="js/klass.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="js/code.photoswipe-3.0.4.min.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<p>By default, Photoswipe expects your HTML to contain a collection of image thumbnails that link to full sized images. However, they're also provide <a href="https://github.com/codecomputerlove/PhotoSwipe/blob/master/src/examples/09-exclusive-mode-no-thumbnails.html">an example of using Photoswipe with an array of hashes</a> that contain image URLs and captions. Since we've already built an array like this, we need only add the following code to the bottom of our <code>load_images</code> function to create our photo gallery:</p>
+
+<pre><code>// Fetch a DOM reference to the first element in our homepage menu.
+var launch_link = document.getElementById('launch_link');
+
+// Configure Photoswipe to load images from the array of hashes created above.
+var options = {
+  captionAndToolbarAutoHideDelay: 0,
+  getImageSource: function(obj){
+    return obj.url;
+  },
+  getImageCaption: function(obj){
+    return obj.caption;
+  }
+};
+
+// Create a PhotoSwipe instance.
+var instance = Code.PhotoSwipe.attach(images, options);
+
+// Launch the slideshow when the user clicks on the launch link menu item on the home screen.
+set_click(launch_link, function(event) { instance.show(0); });
+</code></pre>
+
+<p>Now, when a user clicks on the first item on our menu (the item itself has an id of <code>launch_link</code>) the photo gallery will be launch. The set_click function was covered in <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">part one of this tutorial</a>.</p>
+
+<h3>Android ICS Fix</h3>
+
+<p>Based on my tests, Photoswipe is unusable on Android Ice Cream Sandwich version 4.0.0, 4.0.1, and 4.0.2. Things appear to work with Android 4.0.3, but I've only tested this version using the emulator not on an actual device.</p>
+
+<p>On the affected devices the swipe animations are very choppy. Sometimes the images flash when swiped or are not displayed at all. This appears to be <a href="http://code.google.com/p/android/issues/detail?id=24837">a CSS 3D transforms bug in Android 4.0.[0-2]</a>.</p>
+
+<p>A quick fix, <a href="https://github.com/codecomputerlove/PhotoSwipe/issues/275">found here</a>, is to have Photoswipe disable 3D transforms for those specific versions of Android. In order to accomplish this line 326 of Photoswipe's lib/code.util-1.0.6/code.util-1.0.6.js needs to be changed as follows:</p>
+
+<pre><code>// Is this Android ICS versions 4.0.2 or less?
+// The this.android variable was defined earlier in the code.
+var isAndroidICS = /4.0.[1-2]/.test(this.ua) &amp;&amp; this.android; 
+this.is3dSupported = !Util.isNothing(testEl.style.WebkitPerspective) &amp;&amp; !isAndroidICS; 
+</code></pre>
+
+<p>I've provided a single file minified version of <a href="https://gist.github.com/2657154">PhotoSwipe 3.0.4 with this fix in place</a>.</p>
+
+<p>Photoswipe's use of 3D transforms isn't because our photo gallery is in 3D. Using 3D over 2D CSS transforms is a sneaky way to enable hardward-accelerated animations on newer smartphone browsers.</p>
+
+<h3>Conclusion</h3>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/vJMcC" alt="http://goo.gl/vJMcC"
+class="image_wrap" /></p>
+
+<p>The final working version of our code for part 2 of this tutorial can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">tested using your web browser</a>, or by scanning this QR Code.</p>
+
+<p>In this tutorial we developed the swipeable photo gallery portion of our app using the PhotoSwipe library along with images gathered using the Tumblr API. In part three of this tutorial I'll take you through a step-by-step demonstration of turing this (or any other mobile web app) into a native app using <a href="http://phonegap.com">Phonegap</a>.</p>
+
+<p>This final Phonegap-wrapped version of this app is already <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader">available for download on the Android app store</a>.</p>
+            <p class="postinfo">
+            <a href="https://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">Friday 11 May 2012</a>
+                    </p>
+    </article><div id="google_above_comments">
+    <script type="text/javascript"><!--
+        google_ad_client = "ca-pub-8119657288856342";
+        /* Html5 Blog Above Comments */
+        google_ad_slot = "7686170193";
+        google_ad_width = 468;
+        google_ad_height = 60;
+        //-->
+        </script>
+        <script type="text/javascript"
+        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+    </script>
+</div>
+        </div> <!--! end #content -->
+        <aside id="sidebar">
+    <section id="about">
+        <h3>About</h3>
+        <p>One man's quest to build mobile apps using only HTML5, CSS3, Javascript and Phonegap. <a href="https://mobilehtml5.stungeye.com/about" class="more">Find out more &raquo;</a></p>
+    </section>
+
+    <section id="google_sidebar">
+        <script type="text/javascript"><!--
+        google_ad_client = "ca-pub-8119657288856342";
+        /* Html5 Blog Side Square */
+        google_ad_slot = "7040032816";
+        google_ad_width = 250;
+        google_ad_height = 250;
+        //-->
+        </script>
+        <script type="text/javascript"
+        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+        </script>
+    </section>
+    
+    <section id="latest">
+        <h3>Latest Posts</h3>
+        <ul>
+                          <li><a href="https://mobilehtml5.stungeye.com/2015/06/12/html5-native-app-part-three">Html5 Native App Part Three</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">Html5 Tumblr Mobile App Part Two</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/04/12/parsing-rss-with-javascript-and-phonegap">Parsing Rss With Javascript And Phonegap</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">Html5 Tumblr Mobile App Part One</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/02/15/html5-mobile-web-app-tools">Html5 Mobile Web App Tools</a></li>
+                    </ul>
+    </section>
+    
+            <section id="links">
+            <h3>Social Links &amp; Other Projects</h3>
+            <ul>
+                            <li><a href="http://stungeye.com">StungEye</a></li>
+                            <li><a href="http://twitter.com/html5mob">Twitter</a></li>
+                            <li><a href="http://github.com/stungeye">Github</a></li>
+                            <li><a href="http://meow-reader.tumblr.com">Meow Reader</a></li>
+                        </ul>
+        </section>
+        
+    </aside>
+        <footer>
+            <p id="license">
+            Public Domain - 2026            </p>
+
+            <p id="back-top"><a href="#content">Back to top</a></p>
+        </footer>
+    </div> <!--! end #wrapper -->
+        </body>
+</html>
+

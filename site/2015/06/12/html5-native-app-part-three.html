@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Html5 Native App Part Three - Mobile HTML5 Development</title>
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,400italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" href="https://yandex.st/highlightjs/6.1/styles/solarized_light.min.css">
+    <script src="https://yandex.st/highlightjs/6.1/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body id="home">
+    <div id="wrapper">
+        <header>
+            <h1><a href="https://mobilehtml5.stungeye.com" title="Return to the homepage">Mobile HTML5 Development</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="https://mobilehtml5.stungeye.com/apps">Apps</a></li>
+                    <li><a href="https://mobilehtml5.stungeye.com/archive">Archives</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div id="content" role="main">
+<article>
+            <h2><a href="https://mobilehtml5.stungeye.com/2015/06/12/html5-native-app-part-three">Html5 Native App Part Three</a></h2>
+        <p>This is the third installment of our tutorial on building a native mobile app using web technologies. We have been building a simple photo gallery app using images from the <a href="http://tumblr.com">Tumblr</a> microblogging service. In part one <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">we built the user-interface framework</a>, and in part two <a href="http://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">we built the touch-enabled photo gallery</a>.</p>
+
+<p><img src="https://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chld=L|1&chl=http://goo.gl/vJMcC" alt="http://goo.gl/vJMcC"
+class="image_wrap" /></p>
+
+<p>The demo from part two can be <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">tested using your web browser</a>, or by scanning this QR Code with your smartphone. All three menu items are now working, including the "Reading Cats Gallery" which was implemented using the <a href="http://www.photoswipe.com/">Photoswipe library</a>.</p>
+
+<p><strong>In this post we'll be using <a href="https://cordova.apache.org/">Cordova</a> to package our project as a native Android app.</strong></p>
+
+<h3>Game Plan</h3>
+
+<ul>
+<li>Introduction</li>
+<li>Installing Cordova</li>
+<li>Cordova-izing Our App</li>
+<li>Emulating for Android</li>
+<li>Adding Native Functionality</li>
+<li>Adding a Cordova Plugin</li>
+<li>Uploading to the Google Play Store</li>
+</ul>
+
+<p>Things get complicated, so hold on to your cats! I've listed some alternative and potentially simplier approaches in the conclusion.</p>
+
+<h3>Introduction - From PhoneGap to Cordova</h3>
+
+<p>This post is three years late. My interest in HTML5 native apps is re-kindling. ;)</p>
+
+<p>In earlier posts I mentioned that we'd be using PhoneGap to convert our <a href="http://mobilehtml5.stungeye.com/experiments/tumblr_app/">MeowReader HTML5 app</a> into a native app. Since I wrote those earlier posts PhoneGap was purchased by Adobe, with the core technology becoming the open-source <a href="https://cordova.apache.org/">Apache Cordova</a>. Cordova is a framework and API for creating cross-platform native HTML5 apps.</p>
+
+<p>In this post we'll start with the app developed in <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">part 1</a> &amp; <a href="http://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">part 2</a> and  we'll compile it into an Android app. Then we'll deploy it to <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader&amp;hl=en">the Google Play store</a>.</p>
+
+<p>If you have an Android device <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader&amp;hl=en">install the sample MeowReader app now</a>.</p>
+
+<h3>Installing Cordova</h3>
+
+<p>The installation of Cordova will be different depending on your OS. I used a Windows 8 laptop with the Cordova Command Line Interface (CLI).</p>
+
+<p>Regardless of the OS the following will need to be installed and configured.</p>
+
+<ul>
+<li><a href="http://nodejs.org">Node.js</a></li>
+<li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java Development Kit</a> (JDK)</li>
+<li><a href="http://ant.apache.org/">Apache Ant</a></li>
+<li><a href="https://developer.android.com/sdk/installing/index.html?pkg=tools">Android Stand-alone SDK Tools</a></li>
+<li>Android SDK Build Tools - Via the Android SDK Manager</li>
+<li>Target Android API - Via the Android SDK Manager (I targetted API 14, which is Android 4.0 and up.)</li>
+<li><a href="https://cordova.apache.org/docs/en/5.0.0/guide_cli_index.md.html#The%20Command-Line%20Interface">Cordova CLI</a></li>
+</ul>
+
+<p>OS Specific Installation Instructions:</p>
+
+<ul>
+<li><a href="http://evothings.com/doc/build/cordova-install-windows.html">Cordova on Windows</a></li>
+<li><a href="http://learn.ionicframework.com/videos/windows-android/">Cordova on Windows Walkthrough Video</a></li>
+<li><a href="http://evothings.com/doc/build/cordova-install-osx.html">Cordova on OS X</a></li>
+<li><a href="http://evothings.com/doc/build/cordova-install-linux.html">Cordova on Linux</a></li>
+</ul>
+
+<h3>The MeowReader HTML5 App</h3>
+
+<p>The app we've been working on is a combination of HTML, CSS and Javascipt files. Since last time, I've upgraded to a newer version of <a href="http://photoswipe.com/">Photoswipe</a>, but the core functionality is the same. The app pulls images from my <a href="http://meow-reader.tumblr.com/">Meow Reader Tumblr</a> making them available in a swipeable image gallery.</p>
+
+<p><a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App">The code is available as Open Source on GitHub</a>.</p>
+
+<h3>Preparing the App for Cordova</h3>
+
+<p><strong>1)</strong> To create a native Android app the first step is creating a cordova project. From the command line:</p>
+
+<pre><code>cordova create meowreader com.stungeye.meowreader MeowReader
+</code></pre>
+
+<p>This will create a skeleton Cordova project in a <code>meowreader</code> folder.</p>
+
+<p><strong>2)</strong> We then add the Cordova Device plugin:</p>
+
+<pre><code>cordova plugin add org.apache.cordova.device
+</code></pre>
+
+<p><em>Only required if you wish to use the <a href="https://cordova.apache.org/docs/en/3.0.0/cordova_device_device.md.html">device api</a>.</em></p>
+
+<p><strong>3)</strong> Place our app files (index.html, css folder, js folder) in to the <code>meowreader\www</code> folder. Ensuring that our <a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App/blob/master/www/index.html">index.html</a> file includes the following script tag:</p>
+
+<pre><code>&lt;script type="text/javascript" src="cordova.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<h3>Testing Using an Android Emulator</h3>
+
+<p><strong>1)</strong> From the command line again, add project support for the Android platform:</p>
+
+<pre><code>cordova platform add android
+</code></pre>
+
+<p>You may need to following the <a href="https://cordova.apache.org/docs/en/4.0.0/guide_platforms_android_index.md.html#Android%20Platform%20Guide">Cordova Android Platform Guide</a> to ensure that all your tooling is properly configured.</p>
+
+<p><strong>2)</strong> Fill in the core configuration elements in the <a href="https://github.com/stungeye/HTML5-Tumblr-Mobile-App/blob/master/config.xml">config.xml</a> file found in the project root folder. <a href="https://cordova.apache.org/docs/en/4.0.0/config_ref_index.md.html#The%20config.xml%20File">Config.xml Documentation</a></p>
+
+<p><strong>3)</strong> Test the application using the stock Android emulator:</p>
+
+<pre><code>cordova emulate android
+</code></pre>
+
+<p>I prefer to use the <a href="https://www.genymotion.com/">GenyMotion Android Emulator</a>, which needs to be used like this:</p>
+
+<pre><code>cordova run android --device=device-name
+</code></pre>
+
+<p>The device name can be found once a GenyMotion emulator is running using:</p>
+
+<pre><code>adb devices
+</code></pre>
+
+<h3>Adding Some Native Functionality</h3>
+
+<p>Our Meow Reader app doesn't require any native functionality, but imagine we wanted to make use of the device's back button. This is something we normally cannot access from an HTML 5 app. In our Javascript setup code we could add the following:</p>
+
+<pre><code>document.addEventListener("deviceready", onDeviceReady, false);
+
+function onDeviceReady() { 
+    document.addEventListener("backbutton", backKeyPressed, false);
+}
+
+function backKeyPressed() {
+   console.log("The back key was pressed!");
+}
+</code></pre>
+
+<h3>Adding a Cordova Plugin</h3>
+
+<p>Extra native functional can be added to a Cordova app through plugins.  If, for example, we want our app to be able to detect a network connect we'd install the <a href="http://docs.phonegap.com/en/edge/cordova_connection_connection.md.html">Connection Plugin</a>:</p>
+
+<pre><code>cordova plugin add cordova-plugin-network-information
+</code></pre>
+
+<p>Our Javascript can now perform network detections:</p>
+
+<pre><code>function network_is_present() {
+    return navigator.connection.type != Connection.NONE;
+}
+</code></pre>
+
+<p><em>If <code>navigator.connection</code> isn't working you may have to apply the Android specific <code>config.xml</code> tweaks</em> <a href="http://docs.phonegap.com/en/edge/cordova_connection_connection.md.html">described here</a>.</p>
+
+<p>Take some time to <a href="http://plugins.cordova.io/">explore what's available in the Cordova Plugin Ecosystem</a>.</p>
+
+<h3>Google Play Store</h3>
+
+<p>Our final task is deployment of our Android application to the <a href="http://play.google.com">Google Play Store</a>.</p>
+
+<p><strong>1)</strong> Before you deploy you'll need to produce the <a href="https://support.google.com/googleplay/android-developer/answer/1078870">Play Store Required Graphic Assets</a>, such as app screenshots, app store icons, promo &amp; banner graphics.</p>
+
+<p><strong>2)</strong> Your app will also require launcher icons. These will be used as the app icon once it has been installed on an Andoird device.</p>
+
+<p>I built my icons using the <a href="https://romannurik.github.io/AndroidAssetStudio/">Android Asset Studio Tools</a>, placing the generated <code>mipmap</code> folders into <code>meowreader\platforms\android\res</code> and adjusting the <code>AndroidManifest.xml</code> file:</p>
+
+<pre><code>&lt;application android:hardwareAccelerated="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name"&gt;
+</code></pre>
+
+<p><strong>3)</strong> <a href="https://developer.android.com/tools/publishing/app-signing.html">Android requires that all apps be digitally signed with a certificate before they can be installed</a>. Android uses this certificate to identify the author of an app.</p>
+
+<p>I followed <a href="https://developer.android.com/tools/publishing/app-signing.html#signing-manually">the official instructions on manually creating a keystore/private key</a>.</p>
+
+<p>I then added a <code>ant.properties</code> file to the <code>platform\android\</code> folder:</p>
+
+<pre><code>key.store=/Users/username/Documents/my-release-key.keystore
+key.alias=meowreader
+</code></pre>
+
+<p><a href="http://ilee.co.uk/Sign-Releases-with-Cordova-Android/">Details here</a>.</p>
+
+<p>Don't lose this keystore! <a href="https://stackoverflow.com/questions/4843212/the-apk-must-be-signed-with-the-same-certificates-as-the-previous-version">You can't upgrade your app without it</a>.</p>
+
+<p><strong>4)</strong> Build the signed application (APK) file from the command line:</p>
+
+<pre><code>cordova build android --release
+</code></pre>
+
+<p><strong>5)</strong> Create a developer account for the Google Play Store and add a new app (with the assets from step 1). Lastly, upload the APK file from step 4 to the APK section of the Play Store app listing.</p>
+
+<h3>Conclusion</h3>
+
+<p>And so ends part three of our HTML5 native app tutorial. I hope you found it helpful. <a href="http://twitter.com/stungeye">Follow me on Twitter</a> if you want to hear about future tutorials. Don't forget to <a href="https://play.google.com/store/apps/details?id=com.stungeye.meowreader&amp;hl=en">install the demo Meow Reader app from the app store</a>.</p>
+
+<p>I've described but one way to build a Cordova application, one that depends heavily on command line tools. If you aren't comfortable at the command line you might want to look into <a href="http://phonegap.com/blog/2015/03/02/phonegap-app-desktop-0-1-2/">Adobe's PhoneGap Desktop app</a> or their paid <a href="https://build.phonegap.com/">PhoneGap build service</a>.</p>
+
+<p>Since deploying the Meow Reader application I developed and deployed a second HTML5 app to the Android store, <a href="https://play.google.com/store/apps/details?id=com.stungeye.winnipegnews&amp;hl=en">the Winnipeg New app</a>. If you live in Winnipeg and are interested in learning more about Cordova, check out the <a href="http://www.meetup.com/Winnipeg-Android/events/221783607/">Winnipeg Android Meetup on June 23, 2015</a>.</p>
+            <p class="postinfo">
+            <a href="https://mobilehtml5.stungeye.com/2015/06/12/html5-native-app-part-three">Friday 12 June 2015</a>
+                    </p>
+    </article><div id="google_above_comments">
+    <script type="text/javascript"><!--
+        google_ad_client = "ca-pub-8119657288856342";
+        /* Html5 Blog Above Comments */
+        google_ad_slot = "7686170193";
+        google_ad_width = 468;
+        google_ad_height = 60;
+        //-->
+        </script>
+        <script type="text/javascript"
+        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+    </script>
+</div>
+        </div> <!--! end #content -->
+        <aside id="sidebar">
+    <section id="about">
+        <h3>About</h3>
+        <p>One man's quest to build mobile apps using only HTML5, CSS3, Javascript and Phonegap. <a href="https://mobilehtml5.stungeye.com/about" class="more">Find out more &raquo;</a></p>
+    </section>
+
+    <section id="google_sidebar">
+        <script type="text/javascript"><!--
+        google_ad_client = "ca-pub-8119657288856342";
+        /* Html5 Blog Side Square */
+        google_ad_slot = "7040032816";
+        google_ad_width = 250;
+        google_ad_height = 250;
+        //-->
+        </script>
+        <script type="text/javascript"
+        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+        </script>
+    </section>
+    
+    <section id="latest">
+        <h3>Latest Posts</h3>
+        <ul>
+                          <li><a href="https://mobilehtml5.stungeye.com/2015/06/12/html5-native-app-part-three">Html5 Native App Part Three</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">Html5 Tumblr Mobile App Part Two</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/04/12/parsing-rss-with-javascript-and-phonegap">Parsing Rss With Javascript And Phonegap</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">Html5 Tumblr Mobile App Part One</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/02/15/html5-mobile-web-app-tools">Html5 Mobile Web App Tools</a></li>
+                    </ul>
+    </section>
+    
+            <section id="links">
+            <h3>Social Links &amp; Other Projects</h3>
+            <ul>
+                            <li><a href="http://stungeye.com">StungEye</a></li>
+                            <li><a href="http://twitter.com/html5mob">Twitter</a></li>
+                            <li><a href="http://github.com/stungeye">Github</a></li>
+                            <li><a href="http://meow-reader.tumblr.com">Meow Reader</a></li>
+                        </ul>
+        </section>
+        
+    </aside>
+        <footer>
+            <p id="license">
+            Public Domain - 2026            </p>
+
+            <p id="back-top"><a href="#content">Back to top</a></p>
+        </footer>
+    </div> <!--! end #wrapper -->
+        </body>
+</html>
+

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Parsing Rss With Javascript And Phonegap - Mobile HTML5 Development</title>
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,400italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" href="https://yandex.st/highlightjs/6.1/styles/solarized_light.min.css">
+    <script src="https://yandex.st/highlightjs/6.1/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body id="home">
+    <div id="wrapper">
+        <header>
+            <h1><a href="https://mobilehtml5.stungeye.com" title="Return to the homepage">Mobile HTML5 Development</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="https://mobilehtml5.stungeye.com/apps">Apps</a></li>
+                    <li><a href="https://mobilehtml5.stungeye.com/archive">Archives</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div id="content" role="main">
+<article>
+            <h2><a href="https://mobilehtml5.stungeye.com/2012/04/12/parsing-rss-with-javascript-and-phonegap">Parsing Rss With Javascript And Phonegap</a></h2>
+        <p>I just released an <a href="https://market.android.com/details?id=com.stungeye.winnipegnews">RSS news reader app</a> built with HTML5 and Phonegap. During the development of the app I encountered the following three problems when loading RSS feeds using the Javascript XMLHttpRequest object:</p>
+
+<ol>
+<li><p>Certain RSS feeds were being sent out without an XML MIME type, causing Javascript to interpret them as text.</p></li>
+<li><p>Some servers were detecting the AJAX RSS requests as coming from a mobile browser and redirecting to a mobile friendly HTML page.</p></li>
+<li><p>When testing outside of PhoneGap I needed a proxy script to fetch the feeds to overcome the browser's cross-domain restrictions.</p></li>
+</ol>
+
+<h3>Overriding Incorrect MIME Types</h3>
+
+<p>The XMLHttpRequest object has an <code>overrideMimeType</code> function that can be used to override a requested documents MIME type. Here's an example of a simple AJAX call where the MIME type is being forced to text/xml.</p>
+
+<pre><code>var xhr      = new XMLHttpRequest(),
+    feed_url = 'http://some.madeupdomain.ca/feed.xml';
+
+xhr.onerror = function() {
+  alert('Error loading the RSS document.');
+};
+
+xhr.onload = function() {
+  var xml   = xhr.responseXML.documentElement,
+      items = xml.getElementsByTagName('item'),
+      title = items[0].querySelector('title').firstChild.data;
+  alert('The first item title: ' + title);
+};
+
+xhr.open('GET', feed_url);
+xhr.responseType = 'document';
+xhr.overrideMimeType('text/xml');
+xhr.send();
+</code></pre>
+
+<h3>Fooling Mobile Browser Redirections</h3>
+
+<p>Certain web-servers will perform a blanket mobile-device redirect, no matter what document you are trying to load. I found a few news sites that redirected me to a mobile landing page when I tried to use XMLHttpRequest to load their RSS feed. Most mobile redirects of this nature are triggered by <a href="http://en.wikipedia.org/wiki/User_agent#User_agent_sniffing">User Agent sniffing</a>, so I needed some way to have my application self-identify as a non-mobile browser.</p>
+
+<p>PhoneGap doesn't allow us to spoof the User-Agent using Javascript. Instead I had to modify the wrapper application. Here are the required modifications to the main .java file for an Android PhoneGap application. I imagine that the WebView of an iOS PhoneGap Objective-C wrapper app could be similarily modified.</p>
+
+<pre><code>package com.yourdomain.feedtest;
+
+import org.apache.cordova.DroidGap;
+import android.os.Bundle;
+import android.webkit.WebSettings; // Added.
+
+public class FeedTestActivity extends DroidGap {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        super.loadUrl("file:///android_asset/www/index.html");
+        // Added the following two lines to spoof the user-agent to self-identify as a non-mobile browser.
+        WebSettings w = this.appView.getSettings();      
+        w.setUserAgentString("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.202 Safari/535.1");
+    }
+}
+</code></pre>
+
+<h3>Testing in the Browser Using a Proxy</h3>
+
+<p>When I was working on my app I did most of the initial testing using my desktop browser. The only problem is that unlike PhoneGap, browsers do not let you make cross-domain AJAX request. To overcome this I built a simple PHP proxy script that I placed on the same server as my HTML5 mobile app. I then routed all my AJAX calls through this script.</p>
+
+<pre><code>&lt;?php
+  header('Content-type: application/xml');
+  $file = file_get_contents($_GET['url']);
+  $file = preg_replace('/\s+/',' ', $file); // Replace repeated whitespace with single spaces.
+  echo $file;
+?&gt;
+</code></pre>
+
+<p>With this script present in the same folder as my HTML5 web app, I could make cross-domain AJAX request like this:</p>
+
+<pre><code>var xhr       = new XMLHttpRequest(),
+    feed_url  = 'http://some.madeupdomain.ca/feed.xml',
+    proxy_url = 'proxy.php?url=';
+/* Omitting the xhr.onerror and xhr.onload callbacks. */
+xhr.open('GET', proxy_url + feed_url);
+xhr.responseType = 'document';
+xhr.send();
+</code></pre>
+
+<p><strong>P.S.</strong> Part two of my <a href="http://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">HTML5 Mobile Tumblr App post</a> is coming soon.</p>
+            <p class="postinfo">
+            <a href="https://mobilehtml5.stungeye.com/2012/04/12/parsing-rss-with-javascript-and-phonegap">Thursday 12 April 2012</a>
+                    </p>
+    </article><div id="google_above_comments">
+    <script type="text/javascript"><!--
+        google_ad_client = "ca-pub-8119657288856342";
+        /* Html5 Blog Above Comments */
+        google_ad_slot = "7686170193";
+        google_ad_width = 468;
+        google_ad_height = 60;
+        //-->
+        </script>
+        <script type="text/javascript"
+        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+    </script>
+</div>
+        </div> <!--! end #content -->
+        <aside id="sidebar">
+    <section id="about">
+        <h3>About</h3>
+        <p>One man's quest to build mobile apps using only HTML5, CSS3, Javascript and Phonegap. <a href="https://mobilehtml5.stungeye.com/about" class="more">Find out more &raquo;</a></p>
+    </section>
+
+    <section id="google_sidebar">
+        <script type="text/javascript"><!--
+        google_ad_client = "ca-pub-8119657288856342";
+        /* Html5 Blog Side Square */
+        google_ad_slot = "7040032816";
+        google_ad_width = 250;
+        google_ad_height = 250;
+        //-->
+        </script>
+        <script type="text/javascript"
+        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+        </script>
+    </section>
+    
+    <section id="latest">
+        <h3>Latest Posts</h3>
+        <ul>
+                          <li><a href="https://mobilehtml5.stungeye.com/2015/06/12/html5-native-app-part-three">Html5 Native App Part Three</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/05/11/html5-tumblr-mobile-app-part-two">Html5 Tumblr Mobile App Part Two</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/04/12/parsing-rss-with-javascript-and-phonegap">Parsing Rss With Javascript And Phonegap</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/03/05/html5-tumblr-mobile-app-part-one">Html5 Tumblr Mobile App Part One</a></li>
+                          <li><a href="https://mobilehtml5.stungeye.com/2012/02/15/html5-mobile-web-app-tools">Html5 Mobile Web App Tools</a></li>
+                    </ul>
+    </section>
+    
+            <section id="links">
+            <h3>Social Links &amp; Other Projects</h3>
+            <ul>
+                            <li><a href="http://stungeye.com">StungEye</a></li>
+                            <li><a href="http://twitter.com/html5mob">Twitter</a></li>
+                            <li><a href="http://github.com/stungeye">Github</a></li>
+                            <li><a href="http://meow-reader.tumblr.com">Meow Reader</a></li>
+                        </ul>
+        </section>
+        
+    </aside>
+        <footer>
+            <p id="license">
+            Public Domain - 2026            </p>
+
+            <p id="back-top"><a href="#content">Back to top</a></p>
+        </footer>
+    </div> <!--! end #wrapper -->
+        </body>
+</html>
+
