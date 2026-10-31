@@ -1,0 +1,4 @@
+# Cloudflare Workers static assets headers (not served).
+# /atom is the Atom feed saved without an extension (its old URL); the old server sent it as text/xml.
+/atom
+  Content-Type: text/xml; charset=UTF-8

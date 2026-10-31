@@ -1,0 +1,7 @@
+# Cloudflare Workers static assets redirects (not served). PLAN F41.
+# experiments/tumblr_app was a git submodule (an empty folder on the old server); its source is on GitHub.
+/experiments/tumblr_app https://github.com/stungeye/HTML5-Tumblr-Mobile-App 301
+/experiments/tumblr_app/ https://github.com/stungeye/HTML5-Tumblr-Mobile-App 301
+/experiments/tumblr_app/* https://github.com/stungeye/HTML5-Tumblr-Mobile-App 301
+# The old server also answered the feed at /atom/.
+/atom/ /atom 301
