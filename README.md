@@ -12,8 +12,9 @@ The site used to run on a small PHP flat-file blog engine, [stungeye/glutton_blo
   * `tools/strip_adsense.py`: the Google AdSense slots are removed. (Google Analytics and Disqus were already off.)
   * `tools/mirror_fonts.py`: the Droid Serif web font is served from `site/_ext/` instead of Google Fonts.
   * `tools/listings.py`: folders that the old server listed automatically get a plain `index.html` listing (not under `experiments/first/boiler/`, which the old server didn't list).
+  * `tools/drop_unlinked.py`: the demos in `experiments/` that no post links to are removed (`first/`, `second/`, `third/`, `phototest/`, `rss_tests/`, `winnipeg_news_app/`, `MeowReader.apk`). Only `tumblr_app_part_1a/` and `tumblr_app_part_1b/` stay. The removed files are still in `glutton_blog` and in this repo's history.
   * `site/_redirects`: `/experiments/tumblr_app/` was a git submodule (an empty folder on the old server), so it now redirects to [stungeye/HTML5-Tumblr-Mobile-App](https://github.com/stungeye/HTML5-Tumblr-Mobile-App).
-* **What no longer works:** the two `rss.php` feed proxies (in `experiments/rss_tests/` and `experiments/winnipeg_news_app/`) were PHP, so those two demos can't fetch feeds any more. Code highlighting still loads highlight.js 6.1 from `yandex.st`, as the old site did.
+* **Not carried over:** the PHP, including the two `rss.php` feed proxies (their demos are removed too).
 
 Rebuild from scratch (needs the old origin, so this was a one-time run): `tools/fetch_pages.sh <dir>`, then `python3 -I tools/snapshot.py <glutton_blog checkout> <dir>`, then each tool with `--apply` in the order above.
 
