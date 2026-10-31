@@ -21,7 +21,7 @@ Rebuild from scratch (needs the old origin, so this was a one-time run): `tools/
 
 ## Hosting
 
-Served from **Cloudflare Workers static assets** (Free plan; the largest file is well under the 25 MiB limit).
+Served from **Cloudflare Workers static assets** (Free plan; the largest file is well under the 25 MiB limit). Cutover is now complete.
 
 * **Worker:** `static-mobilehtml5-stungeye-com`, account `Stungeye@gmail.com's Account`.
 * **Deploy:** Workers Builds: every push to `main` deploys. No build command; deploy command `npx wrangler deploy`. Only `site/` is uploaded; `_redirects` and `_headers` are read by Cloudflare and not served.
