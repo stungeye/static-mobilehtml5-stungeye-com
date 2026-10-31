@@ -27,4 +27,4 @@ Served from **Cloudflare Workers static assets** (Free plan; the largest file is
 * **Deploy:** Workers Builds: every push to `main` deploys. No build command; deploy command `npx wrangler deploy`. Only `site/` is uploaded; `_redirects` and `_headers` are read by Cloudflare and not served.
 * **Serving:** `html_handling: auto-trailing-slash` (`/about` serves `about.html`; `/about/` 307s to `/about`; `/experiments` 307s to `/experiments/`), `not_found_handling: 404-page` (`site/404.html`).
 * **workers.dev:** on until the cutover is checked. Per-version preview URLs are off.
-* **Route:** none yet. The cutover adds `mobilehtml5.stungeye.com/*` on zone `stungeye.com`; rollback is deleting the route.
+* **Route (since 2026-10-31):** `mobilehtml5.stungeye.com/*` on zone `stungeye.com`, over the proxied `*.stungeye.com` record. Rollback: delete the route.
