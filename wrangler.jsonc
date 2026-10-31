@@ -2,7 +2,7 @@
 {
   "name": "static-mobilehtml5-stungeye-com",
   "compatibility_date": "2026-10-13",
-  "workers_dev": true,  // on until the cutover is checked (then false, R11)
+  "workers_dev": false,  // off after the cutover (R11, PLAN F45)
   "preview_urls": false,
   "assets": {
     "directory": "./site",
